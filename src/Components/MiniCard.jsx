@@ -37,7 +37,7 @@ const MiniCard = ({ time, temp, iconString }) => {
       <p className='text-center'>
         {new Date(time).toLocaleTimeString('en', { weekday: 'long' }).split(" ")[0]}
       </p>
-      <hr />
+      <br />
       <div className='w-full flex justify-center items-center flex-1'>
         <img src={icon} alt="forecast not available" className='w-[4rem] h-[4rem]' />
       </div>
