@@ -13,8 +13,7 @@ function App() {
   const [isCelsius, setIsCelsius] = useState(true);
   const [favoritePlaces, setFavoritePlaces] = useState([]);
   const { weather, thisLocation, values, setPlace } = useStateContext();
-  const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
-
+  const { isAuthenticated, loginWithRedirect, logout } = useAuth0();
   useEffect(() => {
     const savedPlaces = JSON.parse(localStorage.getItem('favoritePlaces')) || [];
     setFavoritePlaces(savedPlaces);
@@ -153,5 +152,7 @@ function App() {
     </div>
   );
 }
-
 export default App;
+
+
+
