@@ -1,13 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import search from './assets/icons/search.svg';
 import { useStateContext } from './Context';
 import { BackgroundLayout, WeatherCard, MiniCard } from './Components';
 import { useAuth0 } from "@auth0/auth0-react";
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 function App() {
   const [input, setInput] = useState('');
+  const [isCelsius, setIsCelsius] = useState(true);
+  const [favoritePlaces, setFavoritePlaces] = useState([]);
   const { weather, thisLocation, values, setPlace } = useStateContext();
   const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
+
+  useEffect(() => {
+    const savedPlaces = JSON.parse(localStorage.getItem('favoritePlaces')) || [];
+    setFavoritePlaces(savedPlaces);
+  }, []);
 
   const onKeyUpHandler = (event) => {
     if (event.key === 'Enter') {
@@ -19,19 +30,45 @@ function App() {
   const onChangeHandler = (event) => {
     setInput(event.target.value);
   };
- 
+
+  const toggleTemperature = () => {
+    setIsCelsius(!isCelsius);
+  };
+
+  const saveFavoritePlace = () => {
+    const newFavorites = [...favoritePlaces, thisLocation];
+    setFavoritePlaces(newFavorites);
+    localStorage.setItem('favoritePlaces', JSON.stringify(newFavorites));
+  };
+
+  const generateChartData = (values) => {
+    return {
+      labels: values.map(entry => entry.datetime),
+      datasets: [
+        {
+          label: 'Temperature',
+          data: values.map(entry => isCelsius ? entry.temp : entry.temp * 9/5 + 32),
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          fill: true,
+          tension: 0.4
+        }
+      ]
+    };
+  };
+
   return (
     <div className='w-full h-screen text-white'>
       {!isAuthenticated ? (
-        <div className='flex items-center justify-center h-full' style={{ backgroundColor: 'lightgreen' }}>
-          <div className='bg-white text-black shadow-2xl p-5 rounded'>
-            <h2 className='text-xl font-bold mb-3'>Login</h2>
+        <div className='flex items-center justify-center h-full'>
+          <div className='bg-white text-black shadow-2xl p-10 rounded-lg max-w-md mx-auto'>
+            <h2 className='text-3xl font-bold mb-6 text-center'>Login</h2>
             <button 
               type="button" 
               onClick={() => loginWithRedirect()} 
-              className='w-full bg-blue-500 text-white p-2 rounded'
+              className='w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-md flex items-center justify-center'
             >
-              <i className="fa-regular fa-user"></i> Log in with Google
+              <i className="fa-regular fa-user mr-2"></i> Log in with Google
             </button>
           </div>
         </div>
@@ -50,12 +87,26 @@ function App() {
                 onChange={onChangeHandler}
               />
             </div>
-            <button 
-              onClick={() => logout({ returnTo: window.location.origin })} 
-              className='bg-gray-500 text-white px-3 py-2 rounded'
-            >
-              Logout
-            </button>
+            <div className='flex items-center'>
+              <button 
+                onClick={toggleTemperature} 
+                className='bg-gray-500 text-white px-3 py-2 rounded mx-2'
+              >
+                {isCelsius ? 'Switch to °F' : 'Switch to °C'}
+              </button>
+              <button 
+                onClick={saveFavoritePlace} 
+                className='bg-green-500 text-white px-3 py-2 rounded mx-2'
+              >
+                Save Favorite Place
+              </button>
+              <button 
+                onClick={() => logout({ returnTo: window.location.origin })} 
+                className='bg-gray-500 text-white px-3 py-2 rounded'
+              >
+                Logout
+              </button>
+            </div>
           </nav>
 
           <BackgroundLayout />
@@ -65,10 +116,11 @@ function App() {
               place={thisLocation}
               windspeed={weather.wspd}
               humidity={weather.humidity}
-              temperature={weather.temp}
-              heatIndex={weather.heatindex}
+              temperature={isCelsius ? weather.temp : weather.temp * 9/5 + 32}
+              heatIndex={isCelsius ? weather.heatindex : weather.heatindex * 9/5 + 32}
               iconString={weather.conditions}
               conditions={weather.conditions}
+              isCelsius={isCelsius}
             />
 
             <div className='flex justify-center gap-8 flex-wrap w-[60%]'>
@@ -76,10 +128,24 @@ function App() {
                 <MiniCard
                   key={current.datetime}
                   time={current.datetime}
-                  temp={current.temp}
+                  temp={isCelsius ? current.temp : current.temp * 9/5 + 32}
                   iconString={current.conditions}
+                  isCelsius={isCelsius}
                 />
               ))}
+            </div>
+
+            <div className='w-full bg-gray-200 p-6 rounded-lg'>
+              <Line data={generateChartData(values.slice(0, 7))} />
+            </div>
+
+            <div className='w-full mt-8'>
+              <h2 className='text-2xl font-bold'>Favorite Places</h2>
+              <ul>
+                {favoritePlaces.map((place, index) => (
+                  <li key={index}>{place}</li>
+                ))}
+              </ul>
             </div>
           </main>
         </>
