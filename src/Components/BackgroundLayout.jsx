@@ -26,7 +26,7 @@ const BackgroundLayout = () => {
       } else if (imageString.toLowerCase().includes('thunder') || imageString.toLowerCase().includes('storm')) {
         setImage(Stormy)
       }
-    }
+    } 
   }, [weather])
 
   return (

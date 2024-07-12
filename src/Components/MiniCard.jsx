@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import  { useEffect, useState } from 'react'
 import sun from '../assets/icons/sun.png'
 import cloud from '../assets/icons/cloud.png'
 import fog from '../assets/icons/fog.png'
@@ -28,9 +28,9 @@ const MiniCard = ({ time, temp, iconString }) => {
       } else if (iconString.toLowerCase().includes('wind')) {
         setIcon(wind)
       }
-    }
+    } 
   }, [iconString])
-
+ 
 
   return (
     <div className='glassCard w-[10rem] h-[10rem] p-4 flex flex-col'>
@@ -46,4 +46,5 @@ const MiniCard = ({ time, temp, iconString }) => {
   )
 }
 
-export default MiniCard
+export default MiniCard;
+
